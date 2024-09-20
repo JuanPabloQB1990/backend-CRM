@@ -122,6 +122,43 @@ const registerUser = async (req, res) => {
   }
 };
 
+export const createUser = async (req, res) => {
+  
+  const { name, email } = req.body;
+  console.log(req.body);
+  try {
+    pool.execute(
+      "SELECT * FROM users WHERE email = ?",
+      [email],
+      async (err, result) => {
+        if (err) {
+          return console.log(err);
+        }
+
+        if (result.length > 0) {
+          return res
+            .status(404)
+            .json({ message: "Este cliente ya se encuentra registrado" });
+        }
+
+        pool.execute(
+          "INSERT INTO users (`name`,`email`)values(?,?)",
+          [name, email],
+          (err) => {
+            if (err) {
+              throw new Error(err);
+            }
+
+            return res.status(200).json({ message: "Cliente creado" });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 const loginUser = async (req, res) => {
   if (req.body.email === "") {
     await check("email")
